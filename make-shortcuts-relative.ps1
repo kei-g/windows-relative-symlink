@@ -1,7 +1,13 @@
+Param([switch] $deleteShortcuts = $False, [switch] $recursive)
+
+$children = $recursive ? (Get-ChildItem -Recurse .) : (Get-ChildItem .)
+
 $cwd = Get-Location
 $cwd = $cwd.Path.Split('\')
 $shell = New-Object -ComObject WScript.Shell
-Get-ChildItem -Recurse . | Where-Object { -not $_.PsIsContainer -and $_.FullName.EndsWith('.lnk') } | ForEach-Object {
+
+$toBeRemoved = @()
+$children | Where-Object { -not $_.PsIsContainer -and $_.FullName.EndsWith('.lnk') } | ForEach-Object {
     $link = $shell.CreateShortcut($_.FullName)
     if (-not $link.TargetPath) {
         Clear-Variable link
@@ -47,10 +53,23 @@ Get-ChildItem -Recurse . | Where-Object { -not $_.PsIsContainer -and $_.FullName
         $path = '"' + $path + '"'
         $relative = '"' + $relative + '"'
         cmd /C "mklink /D ${path} ${relative}" *| Out-Null
+		$toBeRemoved += $_.FullName
     }
     else {
         Clear-Variable target
         New-Item -ItemType SymbolicLink -Name $path -Value $relative
+		$toBeRemoved += $_.FullName
     }
 }
+
+Clear-Variable children
+Clear-Variable cwd
 Clear-Variable shell
+
+if ($deleteShortcuts) {
+	$toBeRemoved | ForEach-Object {
+		Remove-Item $_ -ErrorAction SilentlyContinue
+	}
+}
+
+Clear-Variable toBeRemoved
