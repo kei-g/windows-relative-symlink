@@ -1,5 +1,23 @@
 Param([switch] $deleteShortcuts = $False, [switch] $recursive)
 
+$current = [System.Security.Principal.WindowsIdentity]::GetCurrent()
+$principal = [System.Security.Principal.WindowsPrincipal]$current
+if (-not $principal.IsInRole('Administrators')) {
+	if ($deleteShortcuts -and $recursive) {
+		Start-Process pwsh.exe "-File `"$PSCommandPath`" -deleteShortcuts -recursive" -Verb RunAs
+	}
+	elseif ($deleteShortcuts) {
+		Start-Process pwsh.exe "-File `"$PSCommandPath`" -deleteShortcuts" -Verb RunAs
+	}
+	elseif ($recursive) {
+		Start-Process pwsh.exe "-File `"$PSCommandPath`" -recursive" -Verb RunAs
+	}
+	else {
+		Start-Process pwsh.exe "-File `"$PSCommandPath`"" -Verb RunAs
+	}
+	exit
+}
+
 $children = $recursive ? (Get-ChildItem -Recurse .) : (Get-ChildItem .)
 
 $cwd = Get-Location
