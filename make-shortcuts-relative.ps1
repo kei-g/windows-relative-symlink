@@ -14,7 +14,7 @@ if (-not $principal.IsInRole('Administrators')) {
 		$arguments += '-recursive'
 	}
 	$arguments = $arguments -join ' '
-	Start-Process pwsh.exe "-File `"$PSCommandPath`" ${arguments}" -Verb RunAs
+	Start-Process pwsh.exe "-File `"$PSCommandPath`" ${arguments}" -Verb RunAs -Wait
 	exit
 }
 
