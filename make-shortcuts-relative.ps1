@@ -71,7 +71,7 @@ $children | Where-Object { -not $_.PsIsContainer -and $_.FullName.EndsWith('.lnk
         $path = '"' + $path + '"'
         $relative = '"' + $relative + '"'
 		if (-not $dryRun) {
-	        cmd /C "mklink /D ${path} ${relative}" *| Out-Null
+	        cmd /C "mklink /D ${path} ${relative}"
 		}
 		$toBeRemoved += $_.FullName
     }
