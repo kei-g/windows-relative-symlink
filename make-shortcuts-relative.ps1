@@ -1,20 +1,20 @@
-Param([switch] $deleteShortcuts = $False, [switch] $recursive)
+Param([switch] $deleteShortcuts = $False, [switch] $dryRun = $False, [switch] $recursive)
 
 $current = [System.Security.Principal.WindowsIdentity]::GetCurrent()
 $principal = [System.Security.Principal.WindowsPrincipal]$current
 if (-not $principal.IsInRole('Administrators')) {
-	if ($deleteShortcuts -and $recursive) {
-		Start-Process pwsh.exe "-File `"$PSCommandPath`" -deleteShortcuts -recursive" -Verb RunAs
+	$arguments = @()
+	if ($deleteShortcuts) {
+		$arguments += '-deleteShortcuts'
 	}
-	elseif ($deleteShortcuts) {
-		Start-Process pwsh.exe "-File `"$PSCommandPath`" -deleteShortcuts" -Verb RunAs
+	if ($dryRun) {
+		$arguments += '-dryRun'
 	}
-	elseif ($recursive) {
-		Start-Process pwsh.exe "-File `"$PSCommandPath`" -recursive" -Verb RunAs
+	if ($recursive) {
+		$arguments += '-recursive'
 	}
-	else {
-		Start-Process pwsh.exe "-File `"$PSCommandPath`"" -Verb RunAs
-	}
+	$arguments = $arguments -join ' '
+	Start-Process pwsh.exe "-File `"$PSCommandPath`" ${arguments}" -Verb RunAs
 	exit
 }
 
@@ -70,12 +70,16 @@ $children | Where-Object { -not $_.PsIsContainer -and $_.FullName.EndsWith('.lnk
         Clear-Variable target
         $path = '"' + $path + '"'
         $relative = '"' + $relative + '"'
-        cmd /C "mklink /D ${path} ${relative}" *| Out-Null
+		if (-not $dryRun) {
+	        cmd /C "mklink /D ${path} ${relative}" *| Out-Null
+		}
 		$toBeRemoved += $_.FullName
     }
     else {
         Clear-Variable target
-        New-Item -ItemType SymbolicLink -Name $path -Value $relative
+		if (-not $dryRun) {
+	        New-Item -ItemType SymbolicLink -Name $path -Value $relative
+		}
 		$toBeRemoved += $_.FullName
     }
 }
@@ -84,7 +88,7 @@ Clear-Variable children
 Clear-Variable cwd
 Clear-Variable shell
 
-if ($deleteShortcuts) {
+if ($deleteShortcuts -and -not $dryRun) {
 	$toBeRemoved | ForEach-Object {
 		Remove-Item $_ -ErrorAction SilentlyContinue
 	}
