@@ -7,4 +7,4 @@ This script converts windows shortcuts to relative symbolic links.
 Works on [PowerShell](https://github.com/PowerShell/PowerShell) 7 or later.  
 Requires promotion to administrator.
 
-[![License](https://img.shields.io/badge/License-BSD%203--Clause-orange.svg)](https://opensource.org/licenses/BSD-3-Clause)
+![GitHub](https://img.shields.io/github/license/kei-g/windows-relative-symlink?style=plastic)
